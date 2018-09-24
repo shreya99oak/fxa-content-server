@@ -346,6 +346,11 @@ const conf = module.exports = convict({
       'dist'
     ]
   },
+  pairing_server_base_uri: {
+    default: 'wss://dev.channelserver.nonprod.cloudops.mozgcp.net',
+    doc: 'The url of the Pairing channel server.',
+    env: 'PAIRING_SERVER_BASE_URI'
+  },
   port: {
     default: 3030,
     doc: 'HTTPS port for local dev',
@@ -414,7 +419,8 @@ const conf = module.exports = convict({
           redirectUris: [
             'https://lockbox.firefox.com/fxa/ios-redirect.html',
             'https://lockbox.firefox.com/fxa/android-redirect.html',
-            'https://accounts.firefox.com/oauth/success/3c49430b43dfba77'
+            'https://accounts.firefox.com/oauth/success/3c49430b43dfba77',
+            'urn:ietf:wg:oauth:2.0:oob:pair-auth-webchannel'
           ]
         },
         'https://identity.mozilla.com/apps/send': {
