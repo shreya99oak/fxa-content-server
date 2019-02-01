@@ -38,6 +38,9 @@ define(function (require, exports, module) {
 
         experimentGroupingRules = new ExperimentGroupingRules({
           env: 'development',
+          featureFlags: {
+            foo: 'bar'
+          },
           experimentGroupingRules: [
             rule1,
             rule2,
@@ -64,11 +67,17 @@ define(function (require, exports, module) {
 
         assert.isTrue(experimentGroupingRules.choose('rule1', subject));
         assert.isTrue(rule1.choose.calledOnce);
-        assert.isTrue(rule1.choose.calledWith(subject));
+        assert.deepEqual(rule1.choose.args[0][0], {
+          experimentGroupingRules,
+          featureFlags: {
+            foo: 'bar'
+          },
+          ...subject
+        });
 
         assert.equal(experimentGroupingRules.choose('rule2', subject), 'treatment');
         assert.isTrue(rule2.choose.calledOnce);
-        assert.isTrue(rule2.choose.calledWith(subject));
+        assert.deepEqual(rule2.choose.args[0][0], rule1.choose.args[0][0]);
 
         // rule3 is allowed even if rule2 is forced.
         subject.forceExperiment = 'rule2';

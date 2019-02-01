@@ -10,6 +10,7 @@ define(function (require, exports, module) {
   const BaseBroker = require('models/auth_brokers/base');
   const Constants = require('lib/constants');
   const ErrorUtils = require('lib/error-utils');
+  const ExperimentGroupingRules = require('lib/experiments/grouping-rules');
   const FxDesktopV2Broker = require('models/auth_brokers/fx-desktop-v2');
   const FxFennecV1Broker = require('models/auth_brokers/fx-fennec-v1');
   const FxFirstrunV1Broker = require('models/auth_brokers/fx-firstrun-v1');
@@ -39,6 +40,7 @@ define(function (require, exports, module) {
     let appStart;
     let backboneHistoryMock;
     let brokerMock;
+    let config;
     let notifier;
     let routerMock;
     let translator;
@@ -48,6 +50,12 @@ define(function (require, exports, module) {
     beforeEach(() => {
       brokerMock = new BaseBroker();
       backboneHistoryMock = new HistoryMock();
+      config = {
+        env: 'production',
+        featureFlags: {
+          foo: 'bar'
+        }
+      }
       notifier = new Notifier();
       routerMock = { navigate: sinon.spy() };
       translator = {
@@ -62,6 +70,32 @@ define(function (require, exports, module) {
 
     afterEach(() => {
       Raven.uninstall();
+    });
+
+    describe('initializeExperimentGroupingRules', () => {
+      beforeEach(() => {
+        appStart = new AppStart({
+          broker: brokerMock,
+          config,
+          history: backboneHistoryMock,
+          notifier,
+          router: routerMock,
+          storage: Storage,
+          translator,
+          user: userMock,
+          window: windowMock
+        });
+      });
+
+      it('propagates env and featureFlags', () => {
+        assert.isUndefined(appStart._experimentGroupingRules);
+
+        appStart.initializeExperimentGroupingRules();
+
+        assert.instanceOf(appStart._experimentGroupingRules, ExperimentGroupingRules);
+        assert.equal(appStart._experimentGroupingRules._env, 'production');
+        assert.deepEqual(appStart._experimentGroupingRules._featureFlags, { foo: 'bar' });
+      });
     });
 
     describe('fatalError', () => {
