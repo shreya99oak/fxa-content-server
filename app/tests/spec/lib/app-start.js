@@ -10,6 +10,7 @@ define(function (require, exports, module) {
   const BaseBroker = require('models/auth_brokers/base');
   const Constants = require('lib/constants');
   const ErrorUtils = require('lib/error-utils');
+  const ExperimentGroupingRules = require('lib/experiments/grouping-rules');
   const FxDesktopV2Broker = require('models/auth_brokers/fx-desktop-v2');
   const FxFennecV1Broker = require('models/auth_brokers/fx-fennec-v1');
   const FxFirstrunV1Broker = require('models/auth_brokers/fx-firstrun-v1');
@@ -39,6 +40,7 @@ define(function (require, exports, module) {
     let appStart;
     let backboneHistoryMock;
     let brokerMock;
+    let config;
     let notifier;
     let routerMock;
     let translator;
@@ -48,6 +50,12 @@ define(function (require, exports, module) {
     beforeEach(() => {
       brokerMock = new BaseBroker();
       backboneHistoryMock = new HistoryMock();
+      config = {
+        env: 'production',
+        featureFlags: {
+          foo: 'bar'
+        }
+      }
       notifier = new Notifier();
       routerMock = { navigate: sinon.spy() };
       translator = {
@@ -61,6 +69,7 @@ define(function (require, exports, module) {
 
       appStart = new AppStart({
         broker: brokerMock,
+        config,
         history: backboneHistoryMock,
         notifier,
         router: routerMock,
@@ -114,7 +123,23 @@ define(function (require, exports, module) {
         });
     });
 
+    it('initializeExperimentGroupingRules propagates env and featureFlags', () => {
+      assert.isUndefined(appStart._experimentGroupingRules);
+
+      appStart.initializeExperimentGroupingRules();
+
+      assert.instanceOf(appStart._experimentGroupingRules, ExperimentGroupingRules);
+      assert.equal(appStart._experimentGroupingRules._env, 'production');
+      assert.deepEqual(appStart._experimentGroupingRules._featureFlags, { foo: 'bar' });
+    });
+
     it('initializeErrorMetrics skips error metrics on empty config', () => {
+      const appStart = new AppStart({
+        broker: brokerMock,
+        history: backboneHistoryMock,
+        router: routerMock,
+        window: windowMock
+      });
       appStart.initializeExperimentGroupingRules();
       const ableChoose = sinon.stub(appStart._experimentGroupingRules, 'choose').callsFake(() => {
         return true;
@@ -133,15 +158,6 @@ define(function (require, exports, module) {
     });
 
     it('initializeErrorMetrics creates error metrics', () => {
-      const appStart = new AppStart({
-        broker: brokerMock,
-        config: {
-          env: 'development'
-        },
-        history: backboneHistoryMock,
-        router: routerMock,
-        window: windowMock
-      });
       appStart.initializeExperimentGroupingRules();
 
       const ableChoose = sinon.stub(appStart._experimentGroupingRules, 'choose').callsFake(() => {
