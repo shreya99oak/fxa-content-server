@@ -159,6 +159,46 @@ const conf = module.exports = convict({
       doc: 'The refresh interval for feature-flagging',
       env: 'FEATURE_FLAG_INTERVAL',
       format: 'duration'
+    },
+    'launch-darkly': {
+      accessToken: {
+        default: 'YOU MUST CHANGE ME',
+        doc: 'LaunchDarkly REST API access token',
+        env: 'FEATURE_FLAG_LD_ACCESS_TOKEN',
+        format: String
+      },
+      projectKey: {
+        default: 'fxa',
+        doc: 'LaunchDarkly project key',
+        env: 'FEATURE_FLAG_LD_PROJECT_KEY',
+        format: String
+      },
+      redis: {
+        enabled: {
+          default: true,
+          doc: 'Cache feature-flag state in Redis',
+          env: 'FEATURE_FLAG_LD_REDIS_ENABLED',
+          format: Boolean
+        },
+        host: {
+          default: '127.0.0.1',
+          doc: 'LaunchDarkly Redis hostname',
+          env: 'FEATURE_FLAG_LD_REDIS_HOST',
+          format: String
+        },
+        port: {
+          default: 6379,
+          doc: 'LaunchDarkly Redis port',
+          env: 'FEATURE_FLAG_LD_REDIS_PORT',
+          format: 'port'
+        },
+        prefix: {
+          default: 'featureFlags:',
+          doc: 'LaunchDarkly Redis key prefix',
+          env: 'FEATURE_FLAG_LD_REDIS_PREFIX',
+          format: String
+        }
+      }
     }
   },
   flow_id_expiry: {
